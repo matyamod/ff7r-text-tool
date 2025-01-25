@@ -1,0 +1,87 @@
+name: build
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+env:
+  TOOL_NAME: ff7r-text-tool
+  TUW_VERSION: 0.9.0
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.check-tag.outputs.tag }}
+
+    steps:
+      - name: Check tag
+        id: check-tag
+        run: |
+          if [[ ${{ github.ref }} == refs/tags/v* ]]; then
+            TAG=$(echo ${{ github.ref }} | sed -e "s#refs/tags/##g")
+          else
+            TAG=$(echo ${{ github.sha }} | cut -c1-7)
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - uses: actions/checkout@v4
+
+      - name: Create Release Draft
+        id: create-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.check-tag.outputs.tag }}
+          name: ${{ steps.check-tag.outputs.tag }}
+          body: |
+            ## Changelog
+
+            - First Change
+            - Second Change
+          draft: true
+          prerelease: false
+
+  build:
+    runs-on: windows-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23.5
+
+      - name: Install dependencies
+        run: go get github.com/spf13/pflag
+
+      - name: Build
+        run: go build -ldflags="-s -w" -trimpath
+
+      - name: Download tuw
+        run: |
+          curl -OL https://github.com/matyalatte/tuw/releases/download/v${{ env.TUW_VERSION }}/Tuw-v${{ env.TUW_VERSION }}-Windows10-x64.zip
+          powershell Expand-Archive -Force -Path Tuw-v${{ env.TUW_VERSION }}-Windows10-x64.zip
+
+      - name: Copy files
+        run: |
+          mkdir -p archive/${{ env.TOOL_NAME }}
+          cp ${{ env.TOOL_NAME }}.exe archive/${{ env.TOOL_NAME }}
+          cp gui_definition.json archive/${{ env.TOOL_NAME }}
+          cp Tuw-v${{ env.TUW_VERSION }}-Windows10-x64/Tuw.exe archive/${{ env.TOOL_NAME }}/GUI.exe
+          cp LICENSE archive/${{ env.TOOL_NAME }}
+        shell: bash
+
+      - name: Archive release for Windows
+        if: runner.os == 'Windows'
+        run: |
+          cd archive/${{ env.TOOL_NAME }}
+          powershell Compress-Archive -Force -Path * -Destination ../${{ env.TOOL_NAME }}-${{ needs.setup.outputs.tag }}-Windows10-x64.zip
+
+      - name: Upload Release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ needs.setup.outputs.tag }} archive/${{ env.TOOL_NAME }}-${{ needs.setup.outputs.tag }}-Windows10-x64.zip

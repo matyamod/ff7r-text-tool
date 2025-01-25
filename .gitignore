@@ -23,3 +23,18 @@ go.work.sum
 
 # env file
 .env
+
+# asset files
+*.uasset
+*.uexp
+*.ubulk
+*.ucas
+*.utoc
+*.pak
+
+# text files
+*.json
+!gui_definition.json
+*/**/*.json
+*.csv
+*.txt

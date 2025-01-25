@@ -1,0 +1,96 @@
+{
+    "recommended": "0.9.0",
+    "minimum_required": "0.7.1",
+    "gui": [
+        {
+            "window_name": "ff7r-text-tool Export mode",
+            "label": "Export",
+            "command": "ff7r-text-tool.exe %asset% -o %export_outdir% -f %format%",
+            "show_last_line": true,
+            "codepage": "utf8",
+            "button": "Export",
+            "components": [
+                {
+                    "type": "file",
+                    "label": "Path to .uasset",
+                    "id": "asset",
+                    "placeholder": "Drop a .uasset file or a folder here!",
+                    "tooltip": "Asset path that you want to export",
+                    "add_quotes": true
+                },
+                {
+                    "type": "folder",
+                    "label": "Output directory",
+                    "id": "export_outdir",
+                    "placeholder": "Drop a folder here!",
+                    "default": "exported",
+                    "add_quotes": true
+                },
+                {
+                    "type": "combo",
+                    "label": "Format",
+                    "id": "format",
+                    "items": [
+                        { "label": "csv" },
+                        { "label": "json" }
+                    ]
+                }
+            ]
+        },
+        {
+            "window_name": "ff7r-text-tool Import mode",
+            "label": "Import",
+            "command": "ff7r-text-tool.exe %json% %asset% -o %import_outdir% -f %format% --mode import",
+            "show_last_line": true,
+            "codepage": "utf8",
+            "button": "Import",
+            "components": [
+                {
+                    "type": "file",
+                    "label": "Path to .csv or .json",
+                    "id": "json",
+                    "placeholder": "Drop a .csv, .json or a folder here!",
+                    "tooltip": "JSON path that you want to import into .uasset",
+                    "add_quotes": true
+                },
+                {
+                    "type": "file",
+                    "label": "Path to .uasset",
+                    "id": "asset",
+                    "placeholder": "Drop a .uasset file or a folder here!",
+                    "tooltip": "Asset path that you want to import .json into",
+                    "add_quotes": true
+                },
+                {
+                    "type": "folder",
+                    "label": "Output directory",
+                    "id": "import_outdir",
+                    "placeholder": "Drop a folder here!",
+                    "default": "imported",
+                    "add_quotes": true
+                },
+                {
+                    "type": "combo",
+                    "label": "Format",
+                    "id": "format",
+                    "items": [
+                        { "label": "csv" },
+                        { "label": "json" }
+                    ]
+                }
+            ]
+        }
+    ],
+    "help": [
+        {
+            "type": "url",
+            "label": "README",
+            "url": "https://github.com/matyamod/ff7r-text-tool"
+        },
+        {
+            "type": "url",
+            "label": "About Tuw (GUI wrapper)",
+            "url": "https://github.com/matyalatte/tuw"
+        }
+    ]
+}
