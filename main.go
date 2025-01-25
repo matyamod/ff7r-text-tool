@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -29,6 +31,7 @@ type options struct {
 var MODE_LIST = []string{
 	"export",
 	"import",
+	"test",
 }
 
 var FORMAT_LIST = []string{
@@ -80,6 +83,93 @@ func argparse() *options {
 	return args
 }
 
+func Export(uassetPath string, outPath string, args *options) {
+	// Read .uasset
+	uasset := core.Uasset{}
+	uasset.ReadFromFile(uassetPath)
+
+	if args.format == "csv" {
+		// Save as .csv
+		core.SaveAsCsv(outPath, uasset.Uexp)
+	} else {
+		// Save as .json
+		core.SaveAsJson(outPath, uasset.Uexp)
+	}
+}
+
+func Import(uassetPath string, newDataPath string, outPath string, args *options) {
+	// Read .uasset
+	uasset := core.Uasset{}
+	uasset.ReadFromFile(uassetPath)
+
+	if args.format == "csv" {
+		// Read .csv
+		core.LoadFromCsv(newDataPath, uasset.Uexp)
+	} else {
+		// Read .json
+		newUexp := &core.Uexp{}
+		core.LoadFromJson(newDataPath, newUexp)
+		uasset.Uexp.UpdateWithNewUexp(newUexp)
+	}
+
+	// Save .uasset and .uexp
+	uasset.WriteToFile(outPath)
+}
+
+func filesAreEqual(file1Path, file2Path string) (bool, error) {
+	// Open the first file
+	file1, err := os.Open(file1Path)
+	if err != nil {
+		return false, err
+	}
+	defer file1.Close()
+
+	// Open the second file
+	file2, err := os.Open(file2Path)
+	if err != nil {
+		return false, err
+	}
+	defer file2.Close()
+
+	// Get file sizes
+	file1Info, err := file1.Stat()
+	if err != nil {
+		return false, err
+	}
+	file2Info, err := file2.Stat()
+	if err != nil {
+		return false, err
+	}
+
+	// Compare file sizes
+	if file1Info.Size() != file2Info.Size() {
+		return false, nil
+	}
+
+	// Compare file contents
+	buf1 := make([]byte, 4096)
+	buf2 := make([]byte, 4096)
+
+	for {
+		n1, err1 := file1.Read(buf1)
+		n2, err2 := file2.Read(buf2)
+
+		if n1 != n2 || !bytes.Equal(buf1[:n1], buf2[:n2]) {
+			return false, nil
+		}
+
+		if err1 == io.EOF && err2 == io.EOF {
+			break
+		}
+
+		if err1 != nil || err2 != nil {
+			return false, fmt.Errorf("error reading files: %v, %v", err1, err2)
+		}
+	}
+
+	return true, nil
+}
+
 func processFile(filePath string, rootdir string, assetRoot string, args *options) {
 	parentDir, baseName, _ := core.SplitFilePath(filePath)
 	relPath, err := filepath.Rel(rootdir, filePath)
@@ -90,39 +180,27 @@ func processFile(filePath string, rootdir string, assetRoot string, args *option
 	outdir := core.MakeDir(filepath.Join(args.outdir, relPath))
 
 	if args.mode == "export" {
-		// Read .uasset
-		uasset := core.Uasset{}
 		uassetPath := filepath.Join(parentDir, baseName+".uasset")
-		uasset.ReadFromFile(uassetPath)
-
 		outPath := filepath.Join(outdir, baseName+"."+args.format)
-		if args.format == "csv" {
-			// Save as .csv
-			core.SaveAsCsv(outPath, uasset.Uexp)
-		} else {
-			// Save as .json
-			core.SaveAsJson(outPath, uasset.Uexp)
-		}
-	} else {
-		// Read .uasset
-		uasset := core.Uasset{}
+		Export(uassetPath, outPath, args)
+	} else if args.mode == "import" {
 		uassetPath := filepath.Join(assetRoot, relPath, baseName+".uasset")
-		uasset.ReadFromFile(uassetPath)
-
 		newDataPath := filepath.Join(parentDir, baseName+"."+args.format)
-		if args.format == "csv" {
-			// Read .csv
-			core.LoadFromCsv(newDataPath, uasset.Uexp)
-		} else {
-			// Read .json
-			newUexp := &core.Uexp{}
-			core.LoadFromJson(newDataPath, newUexp)
-			uasset.Uexp.UpdateWithNewUexp(newUexp)
-		}
-
-		// Save .uasset and .uexp
+		outPath := filepath.Join(outdir, baseName+".uasset")
+		Import(uassetPath, newDataPath, outPath, args)
+	} else {
+		uassetPath := filepath.Join(parentDir, baseName+".uasset")
+		newDataPath := filepath.Join(outdir, baseName+"."+args.format)
+		Export(uassetPath, newDataPath, args)
 		newUassetPath := filepath.Join(outdir, baseName+".uasset")
-		uasset.WriteToFile(newUassetPath)
+		Import(uassetPath, newDataPath, newUassetPath, args)
+		eq, err := filesAreEqual(uassetPath, newUassetPath)
+		if err != nil {
+			core.Throw(err)
+		}
+		if !eq {
+			core.Throw(fmt.Errorf("failed to reconstruct asset file. (%s)", uassetPath))
+		}
 	}
 }
 

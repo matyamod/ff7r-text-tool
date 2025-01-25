@@ -3,7 +3,7 @@
 Text modding tool for FF7R trilogy.
 
 > [!warning]
-> This repository is still a WIP project. There are might be tons of issues.
+> This repository is still a WIP project. There might be tons of issues.
 
 ## Features
 
