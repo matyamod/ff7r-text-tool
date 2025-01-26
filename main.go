@@ -20,12 +20,13 @@ import (
 var TOOL_VERSION string = "0.1.0"
 
 type options struct {
-	files      []string
-	mode       string // export or import
-	outdir     string
-	format     string // csv or json
-	numWorkers int
-	verbose    bool
+	files       []string
+	mode        string // export or import
+	outdir      string
+	format      string // csv or json
+	numWorkers  int
+	verbose     bool
+	ignoreEmpty bool
 }
 
 var MODE_LIST = []string{
@@ -46,6 +47,7 @@ func argparse() *options {
 	flag.StringVarP(&args.format, "format", "f", "csv", "csv or json")
 	flag.StringVarP(&args.outdir, "outdir", "o", "out", "path to output directory")
 	flag.BoolVarP(&args.verbose, "verbose", "v", false, "shows more information")
+	flag.BoolVarP(&args.ignoreEmpty, "ignore_empty", "i", false, "ignores empty assets")
 	flag.IntVarP(&args.numWorkers, "num_workers", "n", 0, "number of worker processes. 0 means the number of CPUs")
 	flag.Parse()
 
@@ -83,10 +85,14 @@ func argparse() *options {
 	return args
 }
 
-func Export(uassetPath string, outPath string, args *options) {
+func Export(uassetPath string, outPath string, args *options) int {
 	// Read .uasset
 	uasset := core.Uasset{}
 	uasset.ReadFromFile(uassetPath)
+
+	if args.ignoreEmpty && len(uasset.Uexp.Entries) == 0 {
+		return 0 // Do not export empty assets
+	}
 
 	if args.format == "csv" {
 		// Save as .csv
@@ -95,9 +101,11 @@ func Export(uassetPath string, outPath string, args *options) {
 		// Save as .json
 		core.SaveAsJson(outPath, uasset.Uexp)
 	}
+
+	return 1
 }
 
-func Import(uassetPath string, newDataPath string, outPath string, args *options) {
+func Import(uassetPath string, newDataPath string, outPath string, args *options) int {
 	// Read .uasset
 	uasset := core.Uasset{}
 	uasset.ReadFromFile(uassetPath)
@@ -114,6 +122,8 @@ func Import(uassetPath string, newDataPath string, outPath string, args *options
 
 	// Save .uasset and .uexp
 	uasset.WriteToFile(outPath)
+
+	return 1
 }
 
 func filesAreEqual(file1Path, file2Path string) (bool, error) {
@@ -171,7 +181,7 @@ func filesAreEqual(file1Path, file2Path string) (bool, error) {
 	return true, nil
 }
 
-func processFile(filePath string, rootdir string, assetRoot string, args *options) {
+func processFile(filePath string, rootdir string, assetRoot string, args *options) int {
 	parentDir, baseName, _ := core.SplitFilePath(filePath)
 	relPath, err := filepath.Rel(rootdir, filePath)
 	if err != nil {
@@ -180,15 +190,17 @@ func processFile(filePath string, rootdir string, assetRoot string, args *option
 	relPath = filepath.Dir(relPath)
 	outdir := core.MakeDir(filepath.Join(args.outdir, relPath))
 
+	processed := 1
+
 	if args.mode == "export" {
 		uassetPath := filepath.Join(parentDir, baseName+".uasset")
 		outPath := filepath.Join(outdir, baseName+"."+args.format)
-		Export(uassetPath, outPath, args)
+		processed = Export(uassetPath, outPath, args)
 	} else if args.mode == "import" {
 		uassetPath := filepath.Join(assetRoot, relPath, baseName+".uasset")
 		newDataPath := filepath.Join(parentDir, baseName+"."+args.format)
 		outPath := filepath.Join(outdir, baseName+".uasset")
-		Import(uassetPath, newDataPath, outPath, args)
+		processed = Import(uassetPath, newDataPath, outPath, args)
 	} else {
 		uassetPath := filepath.Join(parentDir, baseName+".uasset")
 		newDataPath := filepath.Join(outdir, baseName+"."+args.format)
@@ -203,6 +215,7 @@ func processFile(filePath string, rootdir string, assetRoot string, args *option
 			core.Throw(fmt.Errorf("failed to reconstruct asset file. (%s)", uassetPath))
 		}
 	}
+	return processed
 }
 
 func multiProcessFiles(filePath string, assetRoot string, targetExt string, args *options) int {
@@ -219,9 +232,9 @@ func multiProcessFiles(filePath string, assetRoot string, targetExt string, args
 			defer core.ErrorCheck()
 			defer wg.Done()
 			for file := range fileChan {
-				processFile(file, rootdir, assetRoot, args)
+				processed := processFile(file, rootdir, assetRoot, args)
 				countMutex.Lock()
-				fileCount++
+				fileCount += processed
 				countMutex.Unlock()
 			}
 		}()
@@ -281,8 +294,8 @@ func main() {
 		if ext != targetExt {
 			core.Throw(fmt.Errorf("not %s. (%s)", targetExt, filePath))
 		}
-		processFile(filePath, parentDir, assetRoot, args)
-		fileCount++
+		processed := processFile(filePath, parentDir, assetRoot, args)
+		fileCount += processed
 	}
 
 	// Print result

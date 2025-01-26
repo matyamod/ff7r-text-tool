@@ -5,7 +5,7 @@
         {
             "window_name": "ff7r-text-tool Export mode",
             "label": "Export",
-            "command": "ff7r-text-tool.exe %asset% -o %export_outdir% -f %format%",
+            "command": "ff7r-text-tool.exe %asset% -o %export_outdir% -f %format% %ignore%",
             "show_last_line": true,
             "codepage": "utf8",
             "button": "Export",
@@ -34,6 +34,14 @@
                         { "label": "csv" },
                         { "label": "json" }
                     ]
+                },
+                {
+                    "type": "check",
+                    "label": "Ignore empty assets",
+                    "id": "ignore",
+                    "value": "-i",
+                    "tooltip": "Ignores assets that have empty data.",
+                    "default": true
                 }
             ]
         },
