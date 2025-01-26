@@ -117,6 +117,7 @@ func Import(uassetPath string, newDataPath string, outPath string, args *options
 }
 
 func filesAreEqual(file1Path, file2Path string) (bool, error) {
+	fmt.Printf("Comparing %s and %s...\n", file1Path, file2Path)
 	// Open the first file
 	file1, err := os.Open(file1Path)
 	if err != nil {

@@ -27,7 +27,7 @@ type ZenPackageSummary struct {
 	NameId                    uint32
 	NameNumber                uint32
 	SourceNameId              uint32
-	SouceNameNumber           uint32
+	SourceNameNumber          uint32
 	PkgFlags                  uint32
 	CookedHeaderSize          uint32
 	NameMapOffset             int32
@@ -144,22 +144,22 @@ func (uexp *Uexp) FindEntry(key string, firstId int) int {
 	for id >= minId && id < maxId {
 		res := strings.Compare(key, uexp.Entries[id].Id)
 		if res == 0 {
-			break // Found
+			return id // Found
 		} else if res < 0 {
 			if id <= minId {
 				return -1
 			}
 			maxId = id
-			id -= (id - minId) / 2
+			id -= max((id-minId)/2, 1)
 		} else {
 			if id >= maxId-1 {
 				return -1
 			}
 			minId = id
-			id += (maxId - id) / 2
+			id += max((maxId-id)/2, 1)
 		}
 	}
-	return id
+	return -1
 }
 
 func (uexp *Uexp) UpdateWithNewUexp(newUexp *Uexp) {
@@ -298,7 +298,6 @@ func (uasset *Uasset) Write(s *Serializer) {
 		s.WriteInt32(uexpSize)
 		s.Seek(uasset.Summary.GetUassetEndOffset(), 0)
 	}
-
 }
 
 func (uasset *Uasset) Update() {
