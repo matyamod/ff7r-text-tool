@@ -8,7 +8,7 @@ on:
 
 env:
   TOOL_NAME: ff7r-text-tool
-  TUW_VERSION: 0.9.0
+  TUW_VERSION: 0.9.1
 
 jobs:
   setup:
