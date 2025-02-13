@@ -127,6 +127,7 @@ func (e *Entry) UpdateNameId(uasset *Uasset) {
 }
 
 func (e *Entry) UpdateWithNewEntry(newE *Entry) {
+	e.Text = newE.Text
 	for _, se := range newE.SubEntries {
 		var found bool = false
 		for i := range len(e.SubEntries) {
