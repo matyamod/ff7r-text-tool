@@ -224,7 +224,7 @@ func processFile(filePath string, rootDir string, assetDir string, args *options
 
 	var outdir string
 	var secondPath string
-	if assetDir == "" || (core.PathExists(assetDir) && core.PathIsDir(assetDir)) {
+	if core.PathExists(assetDir) && core.PathIsDir(assetDir) {
 		_, rootBase := core.SplitPath(rootDir)
 		outdir = core.MakeDir(filepath.Join(args.outdir, rootBase, relPath))
 		secondPath = filepath.Join(assetDir, relPath, baseName+".uasset")
@@ -326,7 +326,7 @@ func main() {
 
 	args := argparse()
 	filePath := args.files[0]
-	assetPath := ""
+	assetPath := filePath
 	if args.mode == "import" || args.mode == "dualsub" {
 		assetPath = args.files[1]
 	}
