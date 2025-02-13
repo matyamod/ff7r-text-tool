@@ -78,6 +78,10 @@ func (s *Serializer) Read(size int) []byte {
 	return buf
 }
 
+func (s *Serializer) ReadAll() []byte {
+	return s.Read(s.GetFileSize())
+}
+
 func (s *Serializer) Write(buf []byte) {
 	_, err := s.file.Write(buf)
 	if err != nil {
@@ -133,6 +137,22 @@ func (s *Serializer) ReadNull() {
 
 func (s *Serializer) WriteNull() {
 	s.WriteInt32(0)
+}
+
+func (s *Serializer) ReadFloat32() float32 {
+	var num float32 = 0
+	err := binary.Read(s.file, s.order, &num)
+	if err != nil {
+		Throw(err)
+	}
+	return num
+}
+
+func (s *Serializer) WriteFloat32(num float32) {
+	err := binary.Write(s.file, s.order, &num)
+	if err != nil {
+		Throw(err)
+	}
 }
 
 func (s *Serializer) ReadStringBase(strlen int32, isUTF16 bool) string {

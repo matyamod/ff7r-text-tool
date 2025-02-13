@@ -3,6 +3,9 @@ package core
 import (
 	"encoding/csv"
 	"fmt"
+	"slices"
+	"strings"
+	"unicode/utf8"
 )
 
 type SubEntry struct {
@@ -162,6 +165,49 @@ func (e *Entry) WriteAsCsv(w *csv.Writer) {
 	for i := range len(e.SubEntries) {
 		e.SubEntries[i].WriteAsCsv(e.Id, w)
 	}
+}
+
+var SUBTTILE_CATEGORIES = []string{
+	"MAIN",
+	"QST_",
+	"NPC_",
+	"MGV_",
+	"CDV_",
+}
+
+func (e *Entry) IsSubtitle() bool {
+	for i := range len(e.SubEntries) {
+		if e.SubEntries[i].Id == "ACTOR" {
+			return true
+		}
+	}
+	// Note: Some voice lines don't have the "ACTOR" property in FF7R2.
+	//       So, we have to check id.
+	if len(e.Id) < 11 {
+		return false
+	}
+	cat := e.Id[7:11]
+	return slices.Contains(SUBTTILE_CATEGORIES, cat) &&
+		!strings.HasSuffix(cat, "_sys")
+}
+
+func (e *Entry) CountLines() int {
+	return strings.Count(e.Text, "\n") + 1
+}
+
+func (e *Entry) CountLunes() int {
+	return utf8.RuneCountInString(e.Text)
+}
+
+// Append another text data
+func (e *Entry) Merge(e2 *Entry, sep string) {
+	if len(e.Text) == 0 {
+		e.Text = e2.Text
+		return
+	} else if len(e2.Text) == 0 {
+		return
+	}
+	e.Text += sep + e2.Text
 }
 
 func (e *Entry) Print() {
