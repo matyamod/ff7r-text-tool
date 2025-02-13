@@ -138,28 +138,28 @@ func (uexp *Uexp) UpdateNameId(uasset *Uasset) {
 }
 
 func (uexp *Uexp) FindEntry(key string, firstId int) int {
-	id := firstId
-	maxId := len(uexp.Entries)
-	minId := 0
-	for id >= minId && id < maxId {
-		res := strings.Compare(key, uexp.Entries[id].Id)
-		if res == 0 {
-			return id // Found
-		} else if res < 0 {
-			if id <= minId {
-				return -1
-			}
-			maxId = id
-			id -= max((id-minId)/2, 1)
-		} else {
-			if id >= maxId-1 {
-				return -1
-			}
-			minId = id
-			id += max((maxId-id)/2, 1)
-		}
+	// Entries are sorted in alphabetical order.
+	// So, we can do the binary search to find a key.
+
+	left, right := 0, len(uexp.Entries)-1
+	if firstId < left || right < firstId {
+		return -1 // Invalid firstId
 	}
-	return -1
+
+	mid := firstId
+	for left <= right {
+		comp := strings.Compare(key, uexp.Entries[mid].Id)
+
+		if comp == 0 {
+			return mid // Found
+		} else if comp < 0 {
+			right = mid - 1
+		} else {
+			left = mid + 1
+		}
+		mid = (left + right) / 2
+	}
+	return -1 // Not found
 }
 
 func (uexp *Uexp) UpdateWithNewUexp(newUexp *Uexp) {
