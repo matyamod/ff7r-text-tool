@@ -6,6 +6,7 @@ import (
 	"log"
 	"reflect"
 	"runtime"
+	"sync"
 )
 
 type Error struct {
@@ -61,6 +62,9 @@ func (e *Error) Throw(any interface{}, traceStart int) {
 			break
 		}
 		funcName := runtime.FuncForPC(pt).Name()
+		if funcName == "runtime.goexit" {
+			break
+		}
 		e.backtraces = fmt.Sprintf("\n  File \"%s\", line %d, in %v%s", file, line, funcName, e.backtraces)
 		if funcName == "main.main" {
 			break
@@ -95,9 +99,23 @@ func GetErrorWithTraces() string {
 	return globalError.GetErrorWithTraces()
 }
 
+var logMutex sync.Mutex
+
 func ErrorCheck() {
 	// catch panic and show backtraces
 	if globalError.HasError() {
+		logMutex.Lock()
 		log.Fatal(globalError.GetErrorWithTraces())
+		logMutex.Unlock()
+	}
+}
+
+func ErrorCheckWithMsg(msg string) {
+	// catch panic and show backtraces
+	if globalError.HasError() {
+		logMutex.Lock()
+		str := msg + globalError.GetErrorWithTraces()
+		log.Fatal(str)
+		logMutex.Unlock()
 	}
 }

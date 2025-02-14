@@ -223,13 +223,15 @@ func multiProcessFiles(filePath string, assetPath string, targetExt string, args
 	for i := 0; i < args.numWorkers; i++ {
 		wg.Add(1)
 		go func() {
-			defer core.ErrorCheck()
 			defer wg.Done()
 			for file := range fileChan {
-				processed := processFile(file, filePath, assetPath, args)
-				countMutex.Lock()
-				fileCount += processed
-				countMutex.Unlock()
+				func(file string) {
+					defer core.ErrorCheckWithMsg(fmt.Sprintf("Input path: %s\n", file))
+					processed := processFile(file, filePath, assetPath, args)
+					countMutex.Lock()
+					fileCount += processed
+					countMutex.Unlock()
+				}(file)
 			}
 		}()
 	}
