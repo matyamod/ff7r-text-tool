@@ -16,7 +16,7 @@ import (
 	core "ff7r-text-tool/core"
 )
 
-var TOOL_VERSION string = "0.1.0"
+var TOOL_VERSION string = "0.2.0"
 
 type options struct {
 	files            []string
