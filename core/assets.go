@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"os"
 	"slices"
 	"strings"
 )
@@ -322,10 +321,7 @@ func (uasset *Uasset) ReadFromFile(filePath string) {
 
 	// Open a read only file
 	fmt.Printf("Reading %s...\n", filePath)
-	uassetFile, err := os.Open(filePath)
-	if err != nil {
-		Throw(err)
-	}
+	uassetFile := OpenFile(filePath)
 	defer uassetFile.Close()
 
 	serializer.SetReadFile(uassetFile)
@@ -335,11 +331,8 @@ func (uasset *Uasset) ReadFromFile(filePath string) {
 		// Read .uexp
 		uexpPath := RemoveExtension(filePath) + ".uexp"
 		fmt.Printf("Reading %s...\n", uexpPath)
-		uexpFile, err := os.Open(uexpPath)
-		if err != nil {
-			Throw(err)
-		}
-		defer uassetFile.Close()
+		uexpFile := OpenFile(uexpPath)
+		defer uexpFile.Close()
 		serializer.SetReadFile(uexpFile)
 	}
 
@@ -355,10 +348,7 @@ func (uasset *Uasset) WriteToFile(filePath string) {
 
 	// Open or create a file
 	fmt.Printf("Writing %s...\n", filePath)
-	uassetFile, err := os.Create(filePath)
-	if err != nil {
-		Throw(err)
-	}
+	uassetFile := CreateFile(filePath)
 	defer uassetFile.Close()
 
 	serializer.SetWriteFile(uassetFile)
@@ -369,11 +359,8 @@ func (uasset *Uasset) WriteToFile(filePath string) {
 		// Read .uexp
 		uexpPath := RemoveExtension(filePath) + ".uexp"
 		fmt.Printf("Writing %s...\n", uexpPath)
-		uexpFile, err := os.Create(uexpPath)
-		if err != nil {
-			Throw(err)
-		}
-		defer uassetFile.Close()
+		uexpFile := CreateFile(uexpPath)
+		defer uexpFile.Close()
 		serializer.SetWriteFile(uexpFile)
 	}
 

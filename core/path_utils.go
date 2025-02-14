@@ -72,3 +72,19 @@ func MakeDir(path string) string {
 	}
 	return GetFullPath(path)
 }
+
+func OpenFile(path string) *os.File {
+	file, err := os.Open(path)
+	if err != nil {
+		Throw(err)
+	}
+	return file
+}
+
+func CreateFile(path string) *os.File {
+	file, err := os.Create(path)
+	if err != nil {
+		Throw(err)
+	}
+	return file
+}

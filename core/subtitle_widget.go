@@ -3,7 +3,6 @@ package core
 import (
 	"bytes"
 	"fmt"
-	"os"
 )
 
 // Edit Subtitle00.uasset to resize subtitle widget
@@ -14,10 +13,7 @@ func ResizeSubtitleWidget(filePath string, outPath string, width int, height int
 
 	// Open files
 	fmt.Printf("Reading %s...\n", filePath)
-	uassetFile, err := os.Open(filePath)
-	if err != nil {
-		Throw(err)
-	}
+	uassetFile := OpenFile(filePath)
 	defer uassetFile.Close()
 
 	s.SetReadFile(uassetFile)
@@ -30,10 +26,7 @@ func ResizeSubtitleWidget(filePath string, outPath string, width int, height int
 	bin := s.ReadAll()
 
 	fmt.Printf("Writing %s...\n", outPath)
-	newFile, err := os.Create(outPath)
-	if err != nil {
-		Throw(err)
-	}
+	newFile := CreateFile(outPath)
 	defer newFile.Close()
 
 	s.SetWriteFile(newFile)
