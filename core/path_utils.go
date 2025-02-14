@@ -1,7 +1,9 @@
 package core
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 )
@@ -87,4 +89,59 @@ func CreateFile(path string) *os.File {
 		Throw(err)
 	}
 	return file
+}
+
+func FilesAreEqual(file1Path, file2Path string) (bool, error) {
+	fmt.Printf("Comparing %s and %s...\n", file1Path, file2Path)
+	// Open the first file
+	file1, err := os.Open(file1Path)
+	if err != nil {
+		return false, err
+	}
+	defer file1.Close()
+
+	// Open the second file
+	file2, err := os.Open(file2Path)
+	if err != nil {
+		return false, err
+	}
+	defer file2.Close()
+
+	// Get file sizes
+	file1Info, err := file1.Stat()
+	if err != nil {
+		return false, err
+	}
+	file2Info, err := file2.Stat()
+	if err != nil {
+		return false, err
+	}
+
+	// Compare file sizes
+	if file1Info.Size() != file2Info.Size() {
+		return false, nil
+	}
+
+	// Compare file contents
+	buf1 := make([]byte, 4096)
+	buf2 := make([]byte, 4096)
+
+	for {
+		n1, err1 := file1.Read(buf1)
+		n2, err2 := file2.Read(buf2)
+
+		if n1 != n2 || !bytes.Equal(buf1[:n1], buf2[:n2]) {
+			return false, nil
+		}
+
+		if err1 == io.EOF && err2 == io.EOF {
+			break
+		}
+
+		if err1 != nil || err2 != nil {
+			return false, fmt.Errorf("error reading files: %v, %v", err1, err2)
+		}
+	}
+
+	return true, nil
 }
