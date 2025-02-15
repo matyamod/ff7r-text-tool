@@ -9,6 +9,7 @@ Text modding tool for FF7R trilogy.
 
 - Export text data from `*_TxtRes.uasset` as csv or json
 - Import text data into `*_TxtRes.uasset`
+- Some utilities for [my dual-subtitle mods](https://www.nexusmods.com/finalfantasy7rebirth/mods/79)
 
 ## Changes from [my old tool](https://github.com/matyamod/FF7R_text_mod_tools)
 
@@ -21,7 +22,10 @@ Text modding tool for FF7R trilogy.
 ## How to use
 
 Launch `GUI.exe` and specify paths for exporting.  
-You can also activate the import mode from the menu bar.
+![screen_shot](https://github.com/user-attachments/assets/9b0eb221-9c19-43ad-9771-51a604bd53c4)
+
+You can also activate other modes from the menu bar.  
+![menu](https://github.com/user-attachments/assets/900591d3-4acd-4d19-b9e9-734eb6db4979)
 
 ## How to build
 
