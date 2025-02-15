@@ -1,5 +1,5 @@
 {
-    "recommended": "0.9.0",
+    "recommended": "0.9.1",
     "minimum_required": "0.7.1",
     "gui": [
         {
@@ -85,6 +85,93 @@
                         { "label": "csv" },
                         { "label": "json" }
                     ]
+                }
+            ]
+        },
+        {
+            "window_name": "ff7r-text-tool Dualsub mode",
+            "label": "Dualsub",
+            "command": "ff7r-text-tool.exe %lang1% %lang2% -o %outdir% -i --mode dualsub",
+            "show_last_line": true,
+            "codepage": "utf8",
+            "button": "Dualsub",
+            "components": [
+                {
+                    "type": "static_text",
+                    "label": "Merge subtitles with line feed."
+                },
+                {
+                    "type": "file",
+                    "label": "Path to .uasset for the first language",
+                    "id": "lang1",
+                    "placeholder": "Drop a .uasset file or a folder here!",
+                    "tooltip": "Asset path that you want to merge into",
+                    "add_quotes": true
+                },
+                {
+                    "type": "file",
+                    "label": "Path to .uasset for the second language",
+                    "id": "lang2",
+                    "placeholder": "Drop a .uasset file or a folder here!",
+                    "tooltip": "Asset path that you want to merge from",
+                    "add_quotes": true
+                },
+                {
+                    "type": "folder",
+                    "label": "Output directory",
+                    "id": "outdir",
+                    "placeholder": "Drop a folder here!",
+                    "default": "out",
+                    "add_quotes": true
+                }
+            ]
+        },
+        {
+            "window_name": "ff7r-text-tool Resize Subtitle Box",
+            "label": "Resize Subtitle Box",
+            "command": "ff7r-text-tool.exe %subtitle00% -o %outdir% --mode resize --width %width% --height %height%",
+            "show_last_line": true,
+            "codepage": "utf8",
+            "button": "Resize",
+            "components": [
+                {
+                    "type": "static_text",
+                    "label": "Resize text box for subtitles.\n(The original game uses 930 x 210.)"
+                },
+                {
+                    "type": "file",
+                    "label": "Path to Subtitle00.uasset",
+                    "id": "subtitle00",
+                    "placeholder": "Drop Subtitle00.uasset here!",
+                    "add_quotes": true
+                },
+                {
+                    "type": "folder",
+                    "label": "Output directory",
+                    "id": "outdir",
+                    "placeholder": "Drop a folder here!",
+                    "default": "out",
+                    "add_quotes": true
+                },
+                {
+                    "type": "int",
+                    "label": "Width",
+                    "id": "width",
+                    "default": 1170,
+                    "min": 0,
+                    "max": 1920,
+                    "wrap": true,
+                    "inc": 10
+                },
+                {
+                    "type": "int",
+                    "label": "Height",
+                    "id": "height",
+                    "default": 260,
+                    "min": 0,
+                    "max": 1080,
+                    "wrap": true,
+                    "inc": 10
                 }
             ]
         }

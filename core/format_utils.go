@@ -26,10 +26,7 @@ func SaveAsJson(filePath string, any interface{}) {
 
 	// Open or create a file for writing
 	fmt.Printf("Writing %s...\n", filePath)
-	file, err := os.Create(filePath)
-	if err != nil {
-		Throw(err)
-	}
+	file := CreateFile(filePath)
 	defer file.Close()
 
 	// Write the indented JSON to the file
@@ -64,10 +61,7 @@ func CsvStrToGoStr(str string) string {
 func LoadFromCsv(filePath string, obj CsvSupported) {
 	// Open or create a file for writing
 	fmt.Printf("Reading %s...\n", filePath)
-	file, err := os.Open(filePath)
-	if err != nil {
-		Throw(err)
-	}
+	file := OpenFile(filePath)
 	defer file.Close()
 
 	reader := csv.NewReader(file)
@@ -77,10 +71,7 @@ func LoadFromCsv(filePath string, obj CsvSupported) {
 func SaveAsCsv(filePath string, obj CsvSupported) {
 	// Open or create a file for writing
 	fmt.Printf("Writing %s...\n", filePath)
-	file, err := os.Create(filePath)
-	if err != nil {
-		Throw(err)
-	}
+	file := CreateFile(filePath)
 	defer file.Close()
 
 	writer := csv.NewWriter(file)
